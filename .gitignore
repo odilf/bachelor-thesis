@@ -1,0 +1,4 @@
+*.pdf
+.direnv
+.DS_Store
+build

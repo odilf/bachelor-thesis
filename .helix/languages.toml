@@ -1,0 +1,18 @@
+[language-server.typos]
+command = "typos-lsp"
+config.diagnosticSeverity = "Warning"
+
+[[language]]
+name = "markdown"
+language-servers = ["typos", "marksman"]
+
+[[language]]
+name = "typst"
+language-servers = ["tinymist", "typos"]
+formatter = ["typstyle"]
+
+[language-server.tinymist.config]
+exportPdf = "onSave"
+rootPath = "/Users/study/research-project/paper"
+typstExtraArgs = ["entrypoint.typ"]
+outputPath = "$root/build/paper-debug.pdf" 

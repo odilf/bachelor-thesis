@@ -1,0 +1,12 @@
+# theme = "everforest_light"
+# theme = "papercolor-light"
+# theme = "catpuccin_latte"
+# theme = "cyan_light"
+ 
+# theme = "papercolor-dark"
+
+[editor]
+text-width = 100
+soft-wrap.enable = true
+soft-wrap.wrap-at-text-width = true
+
