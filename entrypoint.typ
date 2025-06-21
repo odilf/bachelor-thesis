@@ -1,2 +1,3 @@
 #include "./main.typ"
-// #include "./presentation.typ"
+// #include "./presentation/main.typ"
+// #include "./poster/main.typ"

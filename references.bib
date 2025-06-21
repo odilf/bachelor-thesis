@@ -79,6 +79,26 @@
   file = {/Users/study/Zotero/storage/I4ZMNM4V/Backes et al. - 2018 - Semantic-based Automated Reasoning for AWS Access Policies using SMT.pdf}
 }
 
+@incollection{barbosaCvc5VersatileIndustrialStrength2022,
+  title = {Cvc5: {{A Versatile}} and {{Industrial-Strength SMT Solver}}},
+  shorttitle = {Cvc5},
+  booktitle = {Tools and {{Algorithms}} for the {{Construction}} and {{Analysis}} of {{Systems}}},
+  author = {Barbosa, Haniel and Barrett, Clark and Brain, Martin and Kremer, Gereon and Lachnitt, Hanna and Mann, Makai and Mohamed, Abdalrhman and Mohamed, Mudathir and Niemetz, Aina and Nötzli, Andres and Ozdemir, Alex and Preiner, Mathias and Reynolds, Andrew and Sheng, Ying and Tinelli, Cesare and Zohar, Yoni},
+  editor = {Fisman, Dana and Rosu, Grigore},
+  date = {2022},
+  volume = {13243},
+  pages = {415--442},
+  publisher = {Springer International Publishing},
+  location = {Cham},
+  doi = {10.1007/978-3-030-99524-9_24},
+  url = {https://link.springer.com/10.1007/978-3-030-99524-9_24},
+  urldate = {2025-06-10},
+  abstract = {Abstract                            cvc5               is the latest SMT solver in the cooperating validity checker series and builds on the successful code base of CVC4. This paper serves as a comprehensive system description of               cvc5               ’s architectural design and highlights the major features and components introduced since CVC4 ~1.8. We evaluate               cvc5               ’s performance on all benchmarks in SMT-LIB and provide a comparison against CVC4 and Z3.},
+  isbn = {978-3-030-99523-2 978-3-030-99524-9},
+  langid = {english},
+  file = {/Users/study/Zotero/storage/CYBH8E6E/Barbosa et al. - 2022 - cvc5 A Versatile and Industrial-Strength SMT Solver.pdf}
+}
+
 @inproceedings{berzishZ3str3StringSolver2017,
   title = {Z3str3: {{A String Solver}} with {{Theory-aware Heuristics}}},
   shorttitle = {Z3str3},
@@ -348,6 +368,24 @@
   file = {/Users/study/Zotero/storage/S2Q5K54T/Emmi et al. - 2007 - Dynamic test input generation for database applications.pdf}
 }
 
+@article{flemingHowNotLie1986,
+  title = {How Not to Lie with Statistics: The Correct Way to Summarize Benchmark Results},
+  shorttitle = {How Not to Lie with Statistics},
+  author = {Fleming, Philip J. and Wallace, John J.},
+  date = {1986-03},
+  journaltitle = {Communications of the ACM},
+  shortjournal = {Commun. ACM},
+  volume = {29},
+  number = {3},
+  pages = {218--221},
+  issn = {0001-0782, 1557-7317},
+  doi = {10.1145/5666.5673},
+  url = {https://dl.acm.org/doi/10.1145/5666.5673},
+  urldate = {2025-06-11},
+  abstract = {Using the arithmetic mean to summarize normalized benchmark results leads to mistaken conclusions that can be avoided by using the preferred method: the geometric mean.},
+  langid = {english}
+}
+
 @incollection{ganzingerDPLLTFastDecision2004,
   title = {{{DPLL}}({{T}}): {{Fast Decision Procedures}}},
   shorttitle = {{{DPLL}}({{T}})},
@@ -421,6 +459,22 @@ LIPIcs, Vol. 305, 27th International Conference on Theory and Applications of Sa
   note = {JOACO}
 }
 
+@incollection{karpReducibilityCombinatorialProblems1972,
+  title = {Reducibility among {{Combinatorial Problems}}},
+  booktitle = {Complexity of {{Computer Computations}}},
+  author = {Karp, Richard M.},
+  editor = {Miller, Raymond E. and Thatcher, James W. and Bohlinger, Jean D.},
+  date = {1972},
+  pages = {85--103},
+  publisher = {Springer US},
+  location = {Boston, MA},
+  doi = {10.1007/978-1-4684-2001-2_9},
+  url = {http://link.springer.com/10.1007/978-1-4684-2001-2_9},
+  urldate = {2025-06-17},
+  isbn = {978-1-4684-2003-6 978-1-4684-2001-2},
+  langid = {english}
+}
+
 @inproceedings{kauslerEvaluationStringConstraint2014,
   title = {Evaluation of String Constraint Solvers in the Context of Symbolic Execution},
   booktitle = {Proceedings of the 29th {{ACM}}/{{IEEE International Conference}} on {{Automated Software Engineering}}},
@@ -488,6 +542,22 @@ LIPIcs, Vol. 305, 27th International Conference on Theory and Applications of Sa
   eventtitle = {Internetware 2024: 15th {{Asia-Pacific Symposium}} on {{Internetware}}},
   isbn = {979-8-4007-0705-6},
   langid = {english}
+}
+
+@online{luLayeredStagedMonte2024,
+  title = {Layered and {{Staged Monte Carlo Tree Search}} for {{SMT Strategy Synthesis}}},
+  author = {Lu, Zhengyang and Siemer, Stefan and Jha, Piyush and Day, Joel and Manea, Florin and Ganesh, Vijay},
+  date = {2024},
+  doi = {10.48550/ARXIV.2401.17159},
+  url = {https://arxiv.org/abs/2401.17159},
+  urldate = {2025-06-02},
+  abstract = {Modern SMT solvers, such as Z3, offer user-controllable strategies, enabling users to tailor solving strategies for their unique set of instances, thus dramatically enhancing solver performance for their use case. However, this approach of strategy customization presents a significant challenge: handcrafting an optimized strategy for a class of SMT instances remains a complex and demanding task for both solver developers and users alike.  In this paper, we address this problem of automatic SMT strategy synthesis via a novel Monte Carlo Tree Search (MCTS) based method. Our method treats strategy synthesis as a sequential decision-making process, whose search tree corresponds to the strategy space, and employs MCTS to navigate this vast search space. The key innovations that enable our method to identify effective strategies, while keeping costs low, are the ideas of layered and staged MCTS search. These novel heuristics allow for a deeper and more efficient exploration of the strategy space, enabling us to synthesize more effective strategies than the default ones in state-of-the-art (SOTA) SMT solvers. We implement our method, dubbed Z3alpha, as part of the Z3 SMT solver. Through extensive evaluations across six important SMT logics, Z3alpha demonstrates superior performance compared to the SOTA synthesis tool FastSMT, the default Z3 solver, and the CVC5 solver on most benchmarks. Remarkably, on a challenging QF\_BV benchmark set, Z3alpha solves 42.7\% more instances than the default strategy in the Z3 SMT solver.},
+  pubstate = {prepublished},
+  version = {2},
+  keywords = {Artificial Intelligence (cs.AI),FOS: Computer and information sciences,Logic in Computer Science (cs.LO),Software Engineering (cs.SE)},
+  note = {\subsection{Other}
+
+Accepted at IJCAI 2024}
 }
 
 @book{majumdarComputerAidedVerification2017,
@@ -566,6 +636,18 @@ LIPIcs, Vol. 305, 27th International Conference on Theory and Applications of Sa
   doi = {10.5281/ZENODO.11061097},
   url = {https://zenodo.org/doi/10.5281/zenodo.11061097},
   urldate = {2025-05-10},
+  abstract = {This is the SMT-LIB benchmark library: a large library of input problems, or benchmarks, written in the SMT-LIB language. More information about the SMT-LIB initiative can be found at https://smt-lib.org. The contributor and licence of each benchmark is indicated in the metadata fields of each benchmark file. This collection contains the~non-incremental benchmarks. Benchmarks are grouped by logic and compressed with the zstd compression algorithm using the tar --zstd. SMT-LIB benchmarks usually have a very high compression rate, be aware of the required disk space when uncompressing the archives. You can find the size of each archive in compressed and uncompressed form in the following list.},
+  version = {2024.04.23}
+}
+
+@dataset{preinerSMTLIBRelease20242024b,
+  title = {{{SMT-LIB}} Release 2024 (Non-Incremental Benchmarks)},
+  author = {Preiner, Mathias and Schurr, Hans-Jörg and Barrett, Clark and Fontaine, Pascal and Niemetz, Aina and Tinelli, Cesare},
+  date = {2024-04-24},
+  publisher = {Zenodo},
+  doi = {10.5281/ZENODO.11061097},
+  url = {https://zenodo.org/doi/10.5281/zenodo.11061097},
+  urldate = {2025-06-17},
   abstract = {This is the SMT-LIB benchmark library: a large library of input problems, or benchmarks, written in the SMT-LIB language. More information about the SMT-LIB initiative can be found at https://smt-lib.org. The contributor and licence of each benchmark is indicated in the metadata fields of each benchmark file. This collection contains the~non-incremental benchmarks. Benchmarks are grouped by logic and compressed with the zstd compression algorithm using the tar --zstd. SMT-LIB benchmarks usually have a very high compression rate, be aware of the required disk space when uncompressing the archives. You can find the size of each archive in compressed and uncompressed form in the following list.},
   version = {2024.04.23}
 }
@@ -672,10 +754,11 @@ LIPIcs, Vol. 305, 27th International Conference on Theory and Applications of Sa
   langid = {english}
 }
 
-@software{SMTLIBbenchmarks,
-  title = {{{SMT-LIB-benchmarks}}},
-  url = {https://clc-gitlab.cs.uiowa.edu:2443/SMT-LIB-benchmarks},
-  note = {SMTLIB25}
+@online{SMTLIBSatisfiabilityModulo,
+  title = {{{SMT-LIB The Satisfiability Modulo Theories Library}}},
+  url = {https://smt-lib.org/theories-UnicodeStrings.shtml},
+  urldate = {2025-06-17},
+  file = {/Users/study/Zotero/storage/E4GHG92Y/theories-UnicodeStrings.html}
 }
 
 @article{tateishiPathIndexsensitiveString2013,

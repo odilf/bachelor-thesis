@@ -1,29 +1,11 @@
-#import "/utils.typ": todo, DEBUG
+#import "/utils.typ": todo, DEBUG, TIDY-DEBUG, REDACTED, info
 #import "@preview/drafting:0.2.2": note-outline
 
 #set par(justify: false)
 
-#let me = "Odysseas Machairas"
-#let responsible-prof = "Soham Chakraborty"
-#let supervisor = "Dennis Sprokholt"
-#let examiner = "Tomas Hölt"
-
 #set par(first-line-indent: 0pt)
-
 // In case I want to copy the layout more exactly...
 // https://tex.stackexchange.com/questions/24599/what-point-pt-font-size-are-large-etc
-
-#let title = [Is solver guidance redundant for strong SMT implementations?]
-#let subtitle = [An exploration of domain-specific vs general \ improvements applied to Z3's string theories.]
-
-// #if DEBUG [
-//   #align(horizon + center)[
-//     #text(size: 100pt, weight: "black")[DEBUG MODE] \
-//     #v(1cm)
-//     Word count: #total-words
-//   ]
-//   #pagebreak()
-// ]
 
 #align(horizon + center)[
   // TODO: Find higher quality TU Delft logo
@@ -31,11 +13,11 @@
   #v(2cm)
 
   #text(weight: "semibold", 28pt)[
-    #title
+    #info.title
   ] \
   \
   #text(weight: "thin", 16pt)[
-    #subtitle
+    #info.subtitle
   ]
 
 
@@ -43,8 +25,8 @@
   #v(1cm)
 
   #text(size: 1em + 2pt)[
-    *#me* \
-    *Supervisor(s): #responsible-prof#super[1], #supervisor#super[1]*
+    *#info.author* \
+    *Supervisor(s): #info.responsible-prof#super[1], #info.supervisor#super[1]*
   ]
 
   #super[1] EEMCS, Delft University of Technology, The Netherlands
@@ -60,26 +42,32 @@
 
 ]
 
-#text(size: 1em - 1pt)[
-  Name of the student: #me \
-  Final project course: CSE3000 Research Project \
-  Thesis committee: #responsible-prof, #supervisor, #examiner \
-]
+#if TIDY-DEBUG {
+  highlight[#text(size: 1em + 10pt)[*Red dagger (#todo[]) indicates TODOs*] \
+  _(full TODO text available in regular debug version.)_
+  ]
+} else {
+  text(size: 1em - 1pt)[
+    Name of the student: #info.author \
+    Final project course: CSE3000 Research Project \
+    Thesis committee: #info.responsible-prof, #info.supervisor, #info.examiner \
+  ]
+}
 
 #align(center + bottom)[
 
-  An electronic version of this thesis is available at #todo[http://repository.tudelft.nl/]
+  An electronic version of this thesis is available at http://repository.tudelft.nl/
 ]
 
-#pagebreak()
+#pagebreak(weak: true)
 
-#if DEBUG {
-  table(
-    columns: (1fr, 1fr),
-    inset: 0pt,
-    stroke: none,
-    note-outline(level: 2),
-    outline(),
-  )
-  pagebreak(weak: true)
-}
+// #if DEBUG and not REDACTED {
+//   table(
+//     columns: (1fr, 1fr),
+//     inset: 0pt,
+//     stroke: none,
+//     note-outline(level: 2),
+//     outline(),
+//   )
+//   pagebreak(weak: true)
+// }

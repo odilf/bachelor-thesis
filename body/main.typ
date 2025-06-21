@@ -8,6 +8,6 @@
 #include "./3-methodology.typ"
 #include "./4-responsible-research.typ"
 #include "./5-results.typ"
-#include "./6-discussion.typ"
+#include "./6-conclusion.typ"
 
 

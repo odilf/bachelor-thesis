@@ -1,50 +1,163 @@
-#import "/utils.typ": todo, url-link
+#import "/utils.typ": todo, url-link, z3str3, z3-noodler
 #let tc = todo[cite]
 
 = Methodology <methodology>
 
-The main goal of the research today is to compare the difference in performance for various Z3 string solver implementations. To do that we need to run an experiment, for which we need:
+The main goal of the presented research is to compare the difference in performance for various Z3 string solver implementations. To do that we need to run an experiment, for which we need:
 1. A dataset of SMT2 problems about strings to benchmark the performance of each solver.
 2. Domain-specific knowledge for each problem, or a simulation thereof.
-3. A runner to carry out the benchmarks in a reproducible way.
+3. A program to carry out the benchmarks in a reproducible way.
 
-To start, in terms of datasets, we don't have to look any further than the SMT-LIB dataset for strings, which provides over a hunder thousand varied test cases. Specifically, we use `QF_S`, `QF_SLIA` and `QF_SNIA` #tc.
+To start, in terms of datasets, we do not have to look any further than the SMT-LIB dataset for strings, which provides over a hunder thousand varied test cases for strings. Specifically, we use `QF_S`, `QF_SLIA` and `QF_SNIA`, non-incremental 2024 edition @preinerSMTLIBRelease20242024b (`QF` indicates quantifier free; `S`, strings; and `LIA` and `NIA` linear/non-linear integer arithmetic, respectively).
 
-The "creation" of domain-specific knowledge and the runner implementation are more complicated, and is what the rest of this section is about.
+The "creation" of domain-specific knowledge and the runner implementation are more complicated and thus constitute the rest of this section.
 
-== Benchmarking dataset: automatic simulation of domain-specific knowledge #todo[A bit long, would be nice to make it fit in one line.] <automatic-simulation-of-domain-specific-knowledge>
+== Automatic simulation of domain-specific knowledge <automatic-simulation-of-domain-specific-knowledge>
 // == Dataset & automatic simulation of domain-specific knowledge <automatic-simulation-of-domain-specific-knowledge>
 
-Domain-specific knowledge /* or DSK for short #todo[is this necessary? I do like it...]*/ should help the solver find a solution faster. One could study a few problems in detail to find some specific optimization, but it very quickly becomes intractable at the scales needed to have a chance of being representative of what happens "in general". Thus, the implementation used in this paper works by taking the solution (which can be obtained by running any SMT solver normally) and using it to give "hints" to the solver. #todo[Should I clarify why this is not general?].
+Domain-specific knowledge /* or DSK for short #todo[is this necessary? I do like it...]*/ should help the solver find a solution faster. One could study a few problems in detail to find some specific optimization, but it very quickly becomes intractable at the scales needed to have a chance of being representative of what happens "in general".
 
-Specifically, Z3 can provide a satisfying assignment for each variable for any given problem, or an unsatisfiability core if the problem is unsolvable.
+Thus, we present an automatic procedure to simulate domain-specific knowledge. At a high level, it works by taking the solution (which can be obtained by running the solver normally) and using it to give "hints" to the solver. The "hints" are in fact six types of constraint we can add to a variable given a solution, but since the constraints are different we need to quantify how much help each constraint gives. We do this by calculating the log increase of the probability of guessing the solution given said constraint. Then, we can choose a value for help and add constraints until we reach the desired value. #todo[Add example here] The rest of this section explains the motivation behind this approach.
 
-When a problem is satisfiable (i.e., _sat_), Z3 can provide a model solution, that gives satisfiable representations for each variable. We take the model and add constraints based on the answer. There are many ways to do this. The most straightfowrard is to add constraints on each variable of either starting with, containing, or ending with the solution of the variable. The
+=== Constraints and quantifing help
 
-The exact procedure goes as follows:
+There are many constraints for strings but, generally, given a solution for a variable $X$ there are six straightforward, standalone candidates, listed in @table-constraint-candidates (for concise referencing later, we give each constraint a symbol to represent them).
+
+#figure(
+  table(
+    align: center,
+    inset: (x: 5pt, y: 4pt),
+    columns: (auto, auto, auto, auto),
+    [*Constraint name*], [*Symbol*], [*Equation*], [*Parameter*],
+    [Length greater than], $>=$, $|X| >= ell$, [$ell$ where $ell <= |s|$],
+    [Length less than], $<$, $|X| < ell$, [$ell$ where $ell > |s|$],
+    [Length equals], $=$, $|X| = |s|$, [None],
+    [Prefix of (i.e., starts with)],
+    $tack.r$,
+    $X = partial s plus.double Y$,
+    $|partial s|$,
+
+    [Suffix of (i.e., ends with)],
+    $tack.l$,
+    $X = Y plus.double partial s$,
+    $|partial s|$,
+
+    [Substring (i.e., contains)],
+    $tack.t$,
+    $X = Y plus.double partial s plus.double Z$,
+    $|partial s|$,
+  ),
+  caption: [Constraints that can be added to a standalone variable $X$ given \ a solution $s$, a substring of the solution $partial s$ and fresh variables $Y$ and $Z$],
+) <table-constraint-candidates>
+
+However, applying these constraints can be tricky. One could choose a random valid value for a parameter ($partial s$ or $ell$) and add the constraints as given, but the help that each constraint gives is very different. For instance, the prefix, suffix and substring constraints imply a "length greater than" constraint since if a variable has to contain a substring $partial s$ then the length has to be at least $|partial s|$, that is, $|X| > |partial s|$.
+
+We can solve this by quantifing how much each constraint "reduces the search space" and adjusting the parameters accordingly. Since the search space is infinite, we consider a guesser that chooses a length from an exponential distribution $"Exp"(lambda)$ and then chooses a random substring of that length, which has $C$ possibilities for each character. The help that a constraint gives is a measure of the reduction of the expected number of guesses when using said constraint or, equivalently, the increase in probability of finding the guess. Specifically, we define the help $h^*$ given by a constraint with symbol $*$ to be:
+
+$ h^* = -(ln(p^*) - ln(p)) / (ln(p)) $
+
+Where $p$ is the probability of guessing the solution without help and $p^*$ the probability with help.
+
+This scheme is the simplest metric that gives meaningful results for all the listed constraints. The help calculation is done in log space because it maps multiplications in probability calculations to additive changes in help (otherwise revealing a single character to the solver would correspond to 99.9995% help just by itself).
+
+The derivation for the help used by each constraint is not too complicated, but wordy, so it's available in full in @appendix-derivations. In @table-constraint-parameters-help  we show the results:
+
+#let table = {
+  set math.equation(numbering: none)
+  table(
+    columns: (auto, 1fr, auto),
+    inset: (x: 4pt, y: 3pt),
+    align: center + horizon,
+    [*Constraint*], [*Help, given parameters*], [*Parameters, given help*],
+    [Length greater than],
+    $ h^>= = (lambda ell) / ln(p_s) $,
+    $ ell = (h^>= ln(p_s)) / lambda $,
+
+    [Length less than],
+    $ h^< = ln(1 - e^(-lambda ell)) / ln(p_s) $,
+    $ ell &= ln(1 - e^(h^<) p_s) / (-lambda) $,
+
+    [Length equals], $ ln(p_ell) / ln(p_s) $, $ "None" $,
+    [Prefix (starts with)],
+    $ h^(tack.r) = |partial s| (ln(C) + lambda) / (-ln(p_s)) $,
+    $ |partial s| &= h^(tack.r) (-ln(p_s)) / (ln(C) + lambda) $,
+
+    [Suffix (ends with)],
+    $ h^(tack.l) = |partial s| (ln(C) + lambda) / (-ln(p_s)) $,
+    $ |partial s| &= h^(tack.l) (-ln(p_s)) / (ln(C) + lambda) $,
+
+    [Substring (contains)],
+    $
+      h^(tack.t) = (|partial s| ln(C) - ln(|s| - |partial s| + 1)) / (-ln(p_s))
+    $,
+    [Transcedental eq, \ find by binary search],
+  )
+}
+
+#figure(
+  table,
+  caption: [Relationships between constraint parameters and help they provide, \ given the probability of guessing the string $p_s$ and of guessing the length $p_ell$.],
+) <table-constraint-parameters-help>
+
+// #grid(columns: (40%, 1fr), column-gutter: 10mm)[
+#[
+  One might expect at first that $lambda$ and $C$ would cancel out, but this is not the case. In particular, when $lambda$ is larger, the guesses are generally lower, so a "length greater than" constraint is more informative than if $lambda$ was small (see @fig-less-than-constraint-lambda-comparison). Simillarly, for $C$, the more characters you have the more informative each character you reveal is.
+]
+// ][
+#figure(
+  image(
+    "/assets/plots/less-than-constraint-lambda-comparison.svg",
+    // height: 4cm,
+  ),
+  caption: [Probability density of $"Exp"(lambda)$ constraint with a smaller (blue) vs bigger (orange) value of $lambda$. Shaded area indicates the search space removed by a "greater than" constraint],
+) <fig-less-than-constraint-lambda-comparison>
+// ]
+
+Overall, the procedure gives sensible results. If we take, e.g., a  solution $s = #quote[Hello world]$ and constrain it to end with "rld" then we expect the help to be somewhere around $3/11 approx 27.2%$ (since we revealed 3/11 characters), and indeed the help comes out to $26.7%$.
+
+=== Applying constraints based on solution
+
+We now need to apply the constraints. To do that, we first need concrete values for $C$ and $lambda$. We can calculate the value of $C$ easily according to the SMT-LIB standard @SMTLIBSatisfiabilityModulo, which results in $C = 3 dot 16^4 = 196 space.quarter 608$. As for $lambda$ the choice is more arbitrary, but a sensible option is to choose the value that maximizes finding the solution, since the help is relative to that. The value turns out to be $lambda = ln((|s| + 1) / (|s|))$ (per @appendix-max-lambda). This value should provide a representative enough range of lengths the solver is considering, and it definitely provides a representative range of lengths for the specific solution we're hinting at.
+
+The final piece to the puzzle is considering that lengths are discrete, so the constraints cannot give arbitrary help (e.g., if a solution is 3 characters long, you can only give a 1, 2 or 3 character prefix/suffix). The way we handle this is by undershooting the help and adding different constraints until the actual help is at a very small distance $epsilon$ to the target (in this experiment we set $epsilon = 0.01$) or until we run out of unique constraints (we don't add repeated constraints since they make each other redundant and in this way missrepresent the help calculation).
+
+@algorithm-domain-specific-constraints shows pseudocode for the whole procedure: #todo[Be more explicit]
 
 #import "@preview/lovelace:0.3.0": *
 
-#figure(caption: [Tactic generation algorithm], supplement: "Listing")[
-#todo[Improve the algorithm]
-  #pseudocode-list(hooks: 0.25em)[
-    + *Define* generate tactics for $n$ variables:
-      + #line-label(<random-simplex-split>) Split the help into $n$ (i.e., n-simplex sampling).
-      + *For each* $n$: 
-        + #line-label(<random-constraint>) Choose a constraint $c$ randomly between
-          + #smallcaps[StartsWith] $=>$ Select the first $h_n$ fraction of the characters.
-          + #smallcaps[Contains]
-          + #smallcaps[EndsWith].
-        + Take a portion $#raw("help")_n$ of the characters and add it to $c$.
+#figure(
+  caption: [Domain-specific constraint generation algorithm],
+  supplement: "Algorithm",
+)[
+  #pseudocode-list(hooks: 4pt)[
+    + Given help $h$ and $n$ variables with solutions strings $s_1, s_2, ..., s_n$:
+      + #line-label(<line-random-variable-split>) Split $h$ into $n$ uniformly distributed ranges ($h_1, h_2, ..., h_n$).
+      + *For each* $n$:
+        + Let $r = h_n$ (help given so far)
+        + *While* $r > epsilon$
+          + #line-label(<line-random-constraint>) Let $c$ be a random non-visited constraint (if none exist, *break*).
+          + Let $lambda = ln((|s_n|) / (|s_n| + 1))$
+          + Calculate constraint parameter $p$ (either $ell$ or $|partial s|$) according to @table-constraint-parameters-help.
+          + Calculate help $h'$ given by $floor(p)$
+          + *If* $h' > r$, *continue*
+          + Add constraint $c$ with parameter $floor(p)$
+          + Subtract $h'$ from $r$
   ]
-] <tactic-generation-procedure>
+] <algorithm-domain-specific-constraints>
 
-While an analogous procedure might be usable in the _unsat_ cases, there were enough complications for this to be left outside the scope of the current paper. Further discussion about the challenges and potential solutions is given at @future-unsat-cores.
+While an analogous procedure might be usable in the unsatisfiable (or _unsat_) cases, there were enough complications for this to be left outside the scope of the current paper. The main problem is that the _unsat_ case is fundamentally different from the _sat_ case. Finding _sat_ is NP-complete, finding _unsat_ is #strong[co]NP-complete. The helpfulness of the _unsat core_ given by Z3 has no guarantees (e.g., just returning the original problem is perfectly valid!), and --- even though you can --- it is not necessarily appropriate to use the same logic as with the _sat_ case because the motivation used there does not necessarily hold with _unsat_. Another way to put it is that it is trivial to give 100% help in the _sat_ case (just give the solution), while for the _unsat_ case you would need some kind of "for all" proof. This case needs to be handled with additional care, so we leave it as possible future work.
 
-== Runner and reproducibility <runner-and-reproducibility>
+== Benchmark runner and reproducibility <runner-and-reproducibility>
 
-We've written a tool, in Rust, that can run all the benchmarks automatically and store them in an SQLite3 database.
+We've written a tool, in Rust, that can run all the benchmarks automatically and store them in an SQLite3 database. As illustrated in @fig-workflow, the runner first collects the problems into the databasem then, it computes their solutions and whether they're _sat_ and, finally, we generate the tactics according to @algorithm-domain-specific-constraints for each implementation to be benchmarked on every problem with different levels of help (in our case $0$ and $0.9$), multiple times (as many as time budget allows, in our case between 2 to 3). We only benchmark on problems that both #z3str3.display and #z3-noodler.display were able to find _sat_ solutions for, to prevent unfairness.
 
-Care has been taken to achieve the highest standard of reproducibility. To generate random numbers for @random-simplex-split and @random-constraint @tactic-generation-procedure, the #url-link("https://crates.io/crates/wyrand")[`wyrand` crate] is used, which is a fast, deterministic and portable RNG; which we seed with a hash of the problem's content. We also provide #url-link("https://nixos.org")[Nix] derivations that are deterministic and allow for any user to trivially run the programs since, in practice, it is often a hassle to compile and integrate alternative implementations. All in all, any person can easily do the same exact experiments given the source code, which is available on #url-link("https://github.com/odilf/smt-guidance-experiments")[GitHub], TU Delft's GitLab #todo[Get access?] and an #url-link("https://git.odilf.com/odilf/smt-guidance-experiments")[independent forge].
+#figure(
+  include "/assets/workflow-diagram.typ",
+  caption: [Experiment's pipeline diagram. Gray text indicates example data.],
+  // placement: top
+) <fig-workflow>
 
-Finally, to ensure the integrity of the results, the benchmarks were run on a single, standalone server, with no other services running, in the same physical conditions, multiple times.
+We have taken care to achieve the highest standard of reproducibility. Namely, to generate random numbers for @line-random-variable-split and @line-random-constraint of @algorithm-domain-specific-constraints we used the #url-link("https://crates.io/crates/wyrand")[`wyrand` crate], which is a deterministic and portable RNG; which we seed with a hash of the problem's content. We also provide #url-link("https://nixos.org")[Nix] derivations that are deterministic and allow for any user to trivially run the programs since, in practice, it is often a hassle to compile and integrate alternative implementations. All in all, any person can easily do the same exact experiments given the source code, which is available on #url-link("https://github.com/odilf/smt-guidance-experiments")[GitHub] and an #url-link("https://git.odilf.com/odilf/smt-guidance-experiments")[independent forge].
+
+
+The results where ran on a Macbook Pro M1 Max. To ensure consistency, apart from running each case multiple times, the laptop was plugged in with no other user programs running.

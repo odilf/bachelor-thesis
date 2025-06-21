@@ -73,10 +73,12 @@
   //   it
   // }
 
+  set math.equation(numbering: "1. ")
   set heading(numbering: "1.1.")
 
   // superscripts for tables
   show figure.where(kind: table): set figure.caption(position: top)
+  set table(stroke: 0.2mm)
 
   // Make block quotes font size smaller
   // https://libraryguides.vu.edu.au/ieeereferencing/QuotesParaphrase
