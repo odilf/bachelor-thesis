@@ -1,5 +1,5 @@
-// #import "@preview/drafting:0.2.2": *
-#import "/deps/typst-drafting/drafting.typ": *
+#import "@preview/drafting:0.2.2": *
+// #import "/deps/typst-drafting/drafting.typ": *
 
 /// Debug mode, but more tidy.
 #let TIDY-DEBUG = false;

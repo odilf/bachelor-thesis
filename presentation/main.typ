@@ -1,10 +1,12 @@
 #import "/utils.typ": todo, z3str3, z3-noodler, info, constraints
 
-#import "/deps/touying/lib.typ": *
+#import "@preview/touying:0.6.1": *
 #import "@preview/pinit:0.2.2": *
 #import "@preview/numbly:0.1.0": numbly
 
 #import "/colors.typ": bg, bg2, accent, black, gray
+
+#let handout = sys.inputs.at(default: false, "HANDOUT") == "true"
 
 #import themes.dewdrop: *
 #show: dewdrop-theme.with(
@@ -32,8 +34,9 @@
     ],
   ),
   config-common(
-    show-notes-on-second-screen: right,
+    show-notes-on-second-screen: if handout { none } else { right },
     new-section-slide-fn: none,
+    handout: handout,
   ),
 
   config-colors(
@@ -43,10 +46,7 @@
     primary: accent.darken(82%).rotate(27deg),
   ),
 
-  config-page(
-    fill: bg,
-  )
-
+  config-page(fill: bg),
 )
 
 #let click = [$diamond$]
@@ -267,7 +267,7 @@ $ h = -(ln(p^*) - ln(p)) / (ln(p)) $
       - A lot of dimensions: solution length, number of constraints...
     - This is the main statistic. The (geometric) mean of speedup, weighed by the runtime because bigger problems have more impact.
     - The results are damming. z3str3 is about 3.3x faster while z3-noodler is, in fact, over 70% _slower_.
-    - Even in unweighted, z3-noodler is a lot slower than z3str3 but also z3str3 seems to have a slowdown? 
+    - Even in unweighted, z3-noodler is a lot slower than z3str3 but also z3str3 seems to have a slowdown?
   ]
 ]
 
@@ -360,9 +360,12 @@ $ h = -(ln(p^*) - ln(p)) / (ln(p)) $
 
 #align(center, text(size: 1em + 28pt)[*Questions?*])
 
-#focus-slide(config: (config-page(fill: bg)))[
-  #image(height: 134%, "/build/poster.png")
-]
+#let poster_path = sys.inputs.at(default: "/build/poster.png", "POSTER_PATH")
+#if poster_path != "" {
+  focus-slide(config: (config-page(fill: bg)))[
+    #image(height: 134%, poster_path)
+  ]
+}
 
 #heading(depth: 1, outlined: false, bookmarked: false)[Extra slides]
 
