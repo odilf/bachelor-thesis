@@ -1,14 +1,8 @@
-#let todo = body => text(fill: red)[*TODO*: #body]
+#import "/utils.typ": todo, z3str3, z3-noodler, constraints, info
+#import "/assets/workflow-diagram.typ": workflow-diagram
+#import "/assets/notes.typ" as notes
 
-// #let blue1 = color.oklch(20%, 2%, 60deg)
-// #let blue2 = color.oklch(25%, 8%, 290deg)
-// #let black = color.oklch(99%, 3.21%, 106.41deg)
-#let blue1 = color.oklch(98%, 9%, 60deg)
-#let blue2 = color.oklch(75%, 90%, 290deg) // Maybe too saturated
-#let black = color.oklch(1%, 93%, 106.41deg)
-#let gray = color.oklch(45%, 00%, 0deg)
-#let example-color = color.oklch(70%, 15%, 180deg)
-#let note-color = color.oklch(70%, 15%, 130deg)
+#import "/colors.typ": bg, bg2, accent, accent, accent, black, gray
 
 #set page(
   paper: "a0",
@@ -18,24 +12,29 @@
     bottom: 3cm,
     top: 0cm,
   ),
-  columns: 4,
+  columns: 3,
   fill: gradient
     .linear(
-      (blue1.desaturate(20%).lighten(50%), 0%),
-      (blue1, 80%),
-      (blue2, 100%),
+      (bg2, 0%),
+      (bg, 80%),
+      (accent.transparentize(30%), 100%),
       angle: 70deg,
     )
-    .sharp(20, smoothness: 00%),
+    .sharp(42, smoothness: 0%),
 )
+
+#set par(justify: true)
 
 #set text(
   fill: black,
   size: 32pt,
-  font: "Lora",
 )
 #show smallcaps: body => text(font: "Libertinus Serif", body)
 #show raw: set text(font: "IosevkaTerm NF")
+#show figure: it => {
+  show figure.caption: set text(1em - 6pt)
+  it
+}
 #set raw(syntaxes: "/assets/smtlib2.sublime-syntax")
 
 #set heading(numbering: "1.")
@@ -46,14 +45,6 @@
   )
   #v(1cm)
 ]
-
-#import "@preview/frame-it:1.1.2": *
-
-#let (example, note) = frames(
-  example: ("Example", example-color),
-  note: ("Note", note-color),
-)
-#show: frame-style(styles.boxy)
 
 #place(
   top,
@@ -67,7 +58,7 @@
 
     #place(
       curve(
-        fill: blue2.desaturate(90%),
+        fill: accent.desaturate(90%),
         curve.move((0% - x-margin, 0%)),
         curve.line((0% - x-margin, height)),
         curve.line((width - slope_width, height)),
@@ -78,7 +69,7 @@
 
     #place(
       curve(
-        fill: blue2.desaturate(85%),
+        fill: accent.desaturate(85%),
         curve.line((width - slope_width, height)),
         curve.line((width, 0%)),
         curve.close(),
@@ -87,7 +78,7 @@
 
     #place(
       curve(
-        fill: blue2.darken(95%).desaturate(60%),
+        fill: accent.darken(95%).desaturate(60%),
         curve.move((width, 0cm)),
         curve.line((width - slope_width, height)),
         curve.line((100% + x-margin, height)),
@@ -95,141 +86,171 @@
       ),
     )
 
-    #box(width: 100%)[
-      #v(1.5cm)
-      *Is domain-specific guidance redundant with strong SMT solvers?* \
-      #text(size: 0.9em)[An exploration of Z3's strings.]
+    #grid(
+      columns: (66cm, 1fr),
+      [
+        #v(1.5cm)
+        *#info.title* \
+        #text(size: 0.9em)[An exploration of Z3's strings.]
 
-      #v(1cm)
-    ]
+        #v(1cm)
+      ],
+      align(right)[
+        #let mail = text(
+          size: 1em - 35pt,
+          fill: white.transparentize(50%),
+          link(
+            "mailto:o.machairas@student.tudelft.nl",
+            "o.machairas@student.tudelft.nl",
+          ),
+        )
+        #v(1.3cm)
+        #set text(fill: white)
+        #set par(leading: 8mm)
+        *Odysseas Machairas* \
+        #mail \
+        #set text(size: 1em - 27pt)
+        Supervised by D. Sprokholt and S. Chakraborty, TU Delft
+      ],
+    )
   ],
 )
 
 
-= What is Z3? #text(size: 1em - 8pt, fill: note-color)[_(and why should I care?)_]
-#todo[is this too informal?]
+= Context and motivation
 
-Z3 is an SMT solver, which tries to efficiently find whether an expression can have satisfiable assignments. Yes, that infamous NP-complete problem, the hardest kind of problem that has quickly verifiable solutions. #todo[here i repeat "problem" twice]
+#let speaker-note(body) = []
+#let pause = []
 
-SMT solvers are SAT solvers designed to be efficient, using backing theories of specific types, such as floats, bitvectors and strings.
+Z3 @demouraZ3EfficientSMT2008 is an SMT @barrett2010smt solver, which finds satisfiable assignments to queries such as, for two numbers $X$ and $Y$, $X + Y > 13$ and $X dot Y < 10$. This is a generalization of SAT, the archetypal NP-complete problem, which means that universally efficient solutions likely don't exist. Despite this, Z3 aims to quickly find answers to such questions.
 
-Even though it's hard, it's often essential to find solutions to SAT problems quickly. Amazon alone does a billion queries a day to string solvers @rungtaBillionSMTQueries2022.
+There are two ways to improve performance:
 
-= Improving performance: stronger implementation vs solver guidance
+#grid(
+  columns: (3fr, 2fr),
+  gutter: 85pt,
+  [
+    *Domain-specific guidance*
 
-To find more solutions fasters, you can either optimize the underlying implementation of the solver theory, or use _tactics_. Z3 provides the tactics mechanism to let the user guide the solver, generally using domain-specific knowledge for a problem in particular.
+    Understand the structure of a problem, change the strategy of the solver (aka _tactics_, in Z3) or add constraints that refine the search space.
+  ],
+  [
+    *General purpose \ improvements*
 
-#example[Verifying lack of malicious URLs][#{
-    import "@preview/pinit:0.2.2": *
-
-    show raw: it => {
-      set text(size: 1em + 2pt)
-      show regex("pin\d"): it => pin(eval(it.text.slice(3)))
-      it
-    }
-
-    // TODO: I have no idea if this syntax is actually correct
-    v(3cm)
-    ```smt2
-    (sequence
-      pin1(add-bounds (starts-with "http" url))pin2
-      pin3(timeout 20ms identity)pin4)
-    ```
-    pinit-highlight(1, 2, stroke: gray)
-    pinit-point-from(
-      (1, 2),
-      pin-dx: -2em,
-      body-dx: 0em,
-      offset-dx: 0em,
-      pin-dy: -1.1em,
-      body-dy: -1em,
-      offset-dy: -3em,
-      fill: gray,
-    )[#box(
-        width: 11em,
-        text(fill: gray)[Hey, since it's a url, it \ will start with `http`!],
-      )]
-
-    pinit-point-from(
-      (3, 4),
-      fill: gray,
-    )[#box(
-        width: 16em,
-        text(
-          fill: gray,
-        )[But quickly sanity-check \ that it is not anything else...],
-      )]
-    v(4cm)
-  }]
-// #todo[#box(height: 10cm)[diagram of the URL starting with https:// example]]
-
-#todo[Better examples. Show one example where you know because of your problem it is a good idea to simplify the problem, showing before and after of a very tangled tree and an untangled one, but that that might not always work].
-
-#todo[Show example of adding more constraints while keeping the same result. Maybe say that if some theorem has a counterexample, then it has to has an odd numbered counterexample, so you can reduce the search space to half. But also maybe the solver would have found an even result before.].
-
-The question that arises is: *do stronger implementations make tactics redundant?* After all, if the implementation is very smart, it could basically guide itself in a way that is equivalent or better than what the user can provide.
-
-A familiar example of this behavior are compilers: it is generally wiser for programmers to leave optimization to the compiler and hand-written assembly might be worse than compiled code, especially for larger programs. #todo[Maybe this would also be nicer with a diagram.]
-
-// #colbreak(weak: true)
-
-== The competitors
-
-#table(
-  stroke: none,
-  columns: (1fr, 1fr),
-  align: center + bottom,
-  inset: (y: 0.6em, x: 0.0em),
-  smallcaps[*Z3str3*], smallcaps[*Z3-noodler*],
-  [Official, upstream \ Z3 solver], [SotA, winner \ of SMT-COMP],
-  [*2017*], [*2024*],
-  [Theory aware\ case-splitting], [Novel technique, #smallcaps[Stabilization]],
-  todo[cute icon for z3str3], todo[cute icon for z3-noodler],
+    Make the solver better for most problems.
+  ],
 )
+
+Given these two approaches, we ask whether _domain-specific_ guidance becomes less useful if the underlying implementation is stronger in general (e.g., analogous to "helping" a chess engine, which is futile). Namely, we compare:
+
+#grid(
+  inset: 1pt,
+  columns: (0.8fr, 1fr),
+  [
+    #pause
+    *#z3str3.display* (#z3str3.year) @berzishZ3str3StringSolver2017
+
+    - Official Z3 upstream solver
+    - Searches smaller subtrees first
+    - Relatively simple/intuitive
+  ],
+  [
+    *#z3-noodler.display* (#z3-noodler.year) @chenZ3NoodlerAutomatabasedString2024
+
+    - State of the art, winner of SMT-COMP 2024
+    - Compares NFAs from regular expressions directly, and many other improvements
+    - Complicated and not intuitive
+  ],
+)
+
+- *Practical use-cases*:
+  - Whether to invest time in problem understanding _vs_ just letting the solver run (or improving it).
+  - General understanding of how the solvers behave when guided.
+  - Both for research & industry.
 
 = Methodology
 
-There are many datasets for SMT problems. There are not so many tactics. How to obtain them? We could...
+We ran an experiment on the SMT-LIB2 dataset for strings. Namely, we simulated domain-specific knowledge by adding constraints based on the solutions, which quickly cuts off infeasiable branches in regular constraint propagation.
 
-#table(
-  stroke: none,
-  columns: (1fr, 1fr),
-  inset: 0.8cm,
-  [...use Z3's generic tactics, and see which works for which problem...],
-  [...construct custom tactics for each problem, leveraging the solutions...],
-
-  [...but it is a bad simulation of domain-specific knowledge],
-  [...but it is hard to implement and time-consuming],
-
-  todo[diagram of going tactic by tactic],
-  todo[diagram of using the solution to construct custom tactic],
+#box(
+  width: 100%,
+  {
+    set text(size: 1em - 4pt)
+    align(center, workflow-diagram(tight: true, bg: bg))
+  },
 )
+#figure(supplement: "Algorithm")[] <algorithm-domain-specific-constraints>
 
-Since each has its pros and cons, we use both! There might be insightful differences.
+== Simulating domain-specific knowledge
 
-#note[Reproducibility][
+- There are many constraints
+  #set text(size: 1em - 5pt, fill: black.transparentize(30%))
+  (#constraints.map(c => c.name).join(", "))
 
-  #table(
-    columns: (5cm, auto),
-    stroke: none,
-    inset: 0cm,
-    align(
-      horizon,
-      image(
-        width: auto,
-        "/assets/nix-logo.svg",
-      ),
-    ),
-    box(
-      inset: (left: 1cm),
-    )[Everything is packaged with Nix, so you can easily reproduce the testing environment with 100% accuracy.],
-  )
-]
+- Question: How to give help fairly?
+- Answer: Quantify the help, as the reduction of the search space
+  - Guesser $G$ chooses a length $ell$ from $"Exp"(lambda)$, then a random string of length $ell$.
+  - Probability $p_s$ of guessing solution string $s$
+  - Probability $p_s^*$ of guessing solution given a constraint $*$
+  - #text(size: 1em + 5pt)[*Help = log-increase of probability*]
+$ h = -(ln(p_s^*) - ln(p_s)) / (ln(p_s)) $
+
+- Sensible results in practice: `X = "hello"`, then help of `X startsWith "he"`
+  - Expected $tilde 2 / 5 = 40%$
+  - Actual value: $38.87%$
+
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 25pt,
+  notes.setup(), notes.running(),
+)
 
 = Results
 
-#todo[]
+We find that #z3str3.display is sped up more and more consistently than #z3-noodler.display, as per @table-summary.
+
+#figure(
+  {
+    set table(inset: 6mm)
+    include "/assets/summary.typ"
+  },
+  caption: [Mean speedups of average runtime with vs without help, \ weighted by the original runtime (without help) and equally.],
+) <table-summary>
+
+Observations:
+- "Reducing the search space" improves as the problems get harder (@fig-mean-speedup-vs-original-linear), since it adds overhead to small, fast cases (the "slowdown zone").
+- #z3-noodler.display sees _huge_ (70%!) slowdowns with domain-specific help, because...
++ ...it is already fast, so it doesn't leave the "slowdown zone" (@fig-mean-speedup-vs-original-linear)
++ ...the additional constraints actively harm performance (@fig-new-vs-original)
+
+#linebreak()
+- #set text(
+    size: 1em + 8pt,
+  ); Overall, *there does seem to be diminishing returns to \ domain-specific guidance as solvers get stronger*
+
+#figure(
+  image(width: 100%, "/assets/plots/speedup-vs-original-linear.svg"),
+  caption: [Speedup vs original time for #z3str3.display and #z3-noodler.display. Shaded area indicates slowdown. (density at the start not accurately represented)],
+) <fig-mean-speedup-vs-original-linear>
+
+
+#figure(
+  image(
+    width: 100%,
+    "/assets/plots/new-vs-original-heatmaps.svg",
+  ),
+  caption: [Heatmap comparison of runtime with and without help. Shaded area indicates slowdowns, diagonal line corresponds to no change in performance. $mu_"diff"$ is the mean of the difference of the runtimes.],
+) <fig-new-vs-original>
+
+== Limitations & future recommendations
+
+- Test more implementations and more theories.
+- Test higher runtimes for #z3-noodler.display (tricky because long runtimes for #z3-noodler.display generally imply _very_ long runtimes for #z3str3.display).
+- Understand how exactly do these constraints harm performance.
+- Add support for "soft constraints".
+- Apply procedure to unsatisfiable cases.
 
 #v(1fr)
+#set text(size: 1em - 10pt)
 #bibliography("/references.bib")
 

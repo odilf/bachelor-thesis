@@ -4,7 +4,7 @@
 
 = Derivations of help quantification <appendix-derivations>
 
-To carry out the mathematical derivation of exactly how much help each constraint needs (as shown in @table-constraint-parameters-help), we first define the guesser with more rigor. Namely, we say that the length $L$ of the guessed string follows an exponential distribution with parameter $lambda$ such that $L tilde "Exp"(lambda)$ with probability density function $f(x) = lambda e^(-lambda x)$. The chance of, given a solution $s$, guessing the correct string length is
+To carry out the mathematical derivation of exactly how much help each constraint needs (as shown in @table-constraint-parameters-help), we first define the guesser with more rigor. Namely, we say that the length $ell$ of the guessed string follows an exponential distribution with parameter $lambda$ such that $ell tilde "Exp"(lambda)$ with probability density function $f(x) = lambda e^(-lambda x)$. The chance of, given a solution $s$, guessing the correct string length is
 
 $
   p_(ell) &= P(|s| <= L < |s| + 1) \
@@ -13,16 +13,16 @@ $
   &= e^(-lambda|s|) (1 - e^(-lambda))
 $
 
+Note that this is equivalent to a geometric distribution $ell tilde "Geom"(p)$ with $p = 1 - e^(-lambda)$.
+
 and
 
 $
   ln(p_ell) &= ln(e^(-lambda|s|) (1 - e^(-lambda))) \
   &= ln(e^(-lambda|s|)) + ln((1 - e^(-lambda))) \
   &= -lambda|s| + ln(1 - e^(-lambda))
-  // &= (-lambda |s| ) / (-lambda (|s| + 1)) = (|s|) / (|s| + 1)
 $
 
-// It will be useful later to know that
 
 // $ 1 / ln(p_ell) = (|s| + 1) / (|s|) = 1 + 1 / (|s|) $
 
@@ -58,7 +58,7 @@ $
   )
 $
 
-The point at $lambda = infinity$ is 0, so it's a minimum. The maximum, i.e., the value of $lambda$ that maximizes the probability of guessing a length $|s|$ is $lambda = ln((|s| + 1) / (|s|))$
+The point at $lambda = infinity$ is 0, so it is a minimum. The maximum, i.e., the value of $lambda$ that maximizes the probability of guessing a length $|s|$ is $lambda = ln((|s| + 1) / (|s|))$
 
 == Length constraints
 
@@ -95,10 +95,6 @@ And since $p^>=_c = p_c$, then the overall form is
 
 $ ln(p^>=_s) = ln(p_s) + lambda ell $
 
-// So the help is: $ h^>=
-// = 1 - (ln(p_ell) + lambda ell) / ln(p_ell)
-// = 1 - 1 - (lambda ell) / ln(p_ell)
-// = (lambda ell) / ln(p_ell) $
 So the help is: $ h^>=
 &= 1 - (ln(p_s) + lambda ell) / (ln(p_s)) \
 &= 1 - 1 - (lambda ell) / ln(p_s)\
@@ -158,15 +154,6 @@ $
 This constraint does not have a parameter. Since we know the length, $p^=_ell = 1$ so $p^=_s = p_c = p_s / p_ell$ so
 
 $ h^= = (ln(p_s) - ln(p_ell) - ln(p_s)) / ln(p_s) = ln(p_ell) / ln(p_s) $
-
-// ==
-
-// $
-//   h^(tack.r) &= 1 - (C e^lambda)^(-|partial s|) \
-//   (C e^lambda)^(-|partial s|) &=1 - h^(tack.r) \
-//   -|partial s| &= ln(1 - h^(tack.r)) / ln(C e^lambda) \
-//   |partial s| &= -ln(1 - h^(tack.r)) / ln(C e^lambda) \
-// $,
 
 == Substring constraints
 
@@ -246,7 +233,7 @@ A few other queries were used for miscellaneous tasks, such as:
 
 - "How can I do Rust ```rust escape_unicode``` on a ```rust Cow<str>``` and not mutate the string if no escaping is necessary?"
 
-Generally, these were used as a starting point, and all results were checked by a human.
+Generally, these were used as a starting point, and all results were checked/improved by a human (i.e., me).
 
 #v(1cm)
 #link("https://brainmade.org/")[#align(center, image("/assets/brain-made-logo.svg"))]

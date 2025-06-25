@@ -9,5 +9,3 @@
 #include "./4-responsible-research.typ"
 #include "./5-results.typ"
 #include "./6-conclusion.typ"
-
-

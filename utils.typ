@@ -2,12 +2,13 @@
 #import "/deps/typst-drafting/drafting.typ": *
 
 /// Debug mode, but more tidy.
-#let TIDY-DEBUG = true;
+#let TIDY-DEBUG = false;
 
 // Can only pass strings with `--input`
-#let DEBUG = (
-  not TIDY-DEBUG and sys.inputs.at(default: "true", "DEBUG") != "false"
-)
+#let DEBUG = false
+// #let DEBUG = (
+//   not TIDY-DEBUG and sys.inputs.at(default: "true", "DEBUG") != "false"
+// )
 #let REDACTED = false
 #let sensitive = it => if REDACTED { highlight(fill: black, it) } else { it }
 
@@ -15,6 +16,7 @@
 //
 // Setting `--input DEBUG=false` makes the TODOs disappear.
 #let todo = body => {
+  // panic(body) // To check if there are any TODOs left.
   let red = oklch(60%, 30%, 30deg)
   if DEBUG {
     set text(size: 8pt)
@@ -26,17 +28,16 @@
 
 
 #let z3str3 = (
-  display: text(fill: oklch(70%, 90%, 290deg).darken(80%), smallcaps[Z3str3]),
-  // display: smallcaps[Z3str3],
+  // display: text(fill: oklch(70%, 90.54%, 170deg).darken(60%), smallcaps[Z3str3]),
+  display: smallcaps[Z3str3],
+  color: oklch(70%, 90.54%, 170deg),
   year: 2017,
-  color: oklch(70%, 90%, 290deg),
 )
 #let z3-noodler = (
-  display: text(fill: oklch(70%, 90.54%, 170deg).darken(50%), smallcaps[Z3-Noodler]),
-  // display: smallcaps[Z3-Noodler],
+  // display: text(fill: oklch(70%, 90%, 290deg).darken(90%), smallcaps[Z3-Noodler]),
+  display: smallcaps[Z3-Noodler],
+  color: oklch(70%, 90%, 290deg),
   year: 2024,
-  color: oklch(70%, 90.54%, 170deg),
-  // color: oklch(60%, 70%, 270deg)
 )
 
 #let impls = (
@@ -121,3 +122,7 @@
     parameter: [Transcedental eq, \ find by binary search],
   ),
 )
+
+#let cite-wrong(..labels) = for label in labels.pos() {
+    cite(label, style: "council-of-science-editors")
+}

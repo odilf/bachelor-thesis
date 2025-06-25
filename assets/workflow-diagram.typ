@@ -3,8 +3,10 @@
 
 #let example = black.transparentize(50%)
 
-#diagram(
-  node-stroke: 1pt,
+#let workflow-diagram(tight: false, bg: white) = diagram(
+  node-stroke: 0.5pt,
+  node-inset: 0.6em,
+  crossing-fill: bg,
   node(
     (-0.8, 1),
     [
@@ -30,10 +32,11 @@
       text(fill: example)[Discard _unsat_ cases],
     ),
     vertices: ((-1, 1), (-1, 1.8)),
-    label-pos: 0.6,
+    label-pos: 1,
     label-side: left,
     stroke: example,
-    bend: -30deg,
+    bend: -50deg,
+    floating: true,
   ),
   node(
     (0, 1),
@@ -77,6 +80,7 @@
     stroke: 1pt,
     shift: (9mm, 15mm),
     bend: 57deg,
+    floating: true,
   ),
   node(
     (2 - 0.15, 1),
@@ -96,7 +100,10 @@
         )
       }
 
-      (Multiple iterations for each)
+      #if not tight {
+        set text(size: 1em - 6pt)
+        [(Multiple iterations for each)]
+      }
     ],
     shape: fletcher.shapes.rect,
     corner-radius: 2pt,

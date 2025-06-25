@@ -7,6 +7,8 @@
 // In case I want to copy the layout more exactly...
 // https://tex.stackexchange.com/questions/24599/what-point-pt-font-size-are-large-etc
 
+#set page(footer: none)
+
 #align(horizon + center)[
   // TODO: Find higher quality TU Delft logo
   #image("assets/tudelftlogo.png", width: 8cm)
@@ -34,7 +36,7 @@
   #v(1.5cm)
 
   A Thesis Submitted to EEMCS Faculty Delft University of Technology, \
-  In Partial Fulfilment of the Requirements \
+  In Partial Fulfillment of the Requirements \
   For the Bachelor of Computer Science and Engineering \
   #datetime.today().display("[month repr:long] [day], [year]")
 
@@ -43,8 +45,8 @@
 ]
 
 #if TIDY-DEBUG {
-  highlight[#text(size: 1em + 10pt)[*Red dagger (#todo[]) indicates TODOs*] \
-  _(full TODO text available in regular debug version.)_
+  highlight[#text(size: 1em + 10pt)[*Red dagger (#sym.dagger) indicates TODOs*] \
+    _(full TODO text available in regular debug version.)_
   ]
 } else {
   text(size: 1em - 1pt)[
@@ -61,13 +63,12 @@
 
 #pagebreak(weak: true)
 
-// #if DEBUG and not REDACTED {
-//   table(
-//     columns: (1fr, 1fr),
-//     inset: 0pt,
-//     stroke: none,
-//     note-outline(level: 2),
-//     outline(),
-//   )
-//   pagebreak(weak: true)
-// }
+#if DEBUG and not REDACTED {
+  table(
+    columns: (1fr, 1fr),
+    inset: 0pt,
+    stroke: none,
+    note-outline(level: 2), outline(),
+  )
+  pagebreak(weak: true)
+}

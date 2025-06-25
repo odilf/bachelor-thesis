@@ -2,9 +2,13 @@
 command = "typos-lsp"
 config.diagnosticSeverity = "Warning"
 
+[language-server.harper-ls]
+command = "harper-ls"
+args = ["--stdio"]
+
 [[language]]
 name = "markdown"
-language-servers = ["typos", "marksman"]
+language-servers = ["typos", "harper-ls", "marksman"]
 
 [[language]]
 name = "typst"
@@ -16,3 +20,7 @@ exportPdf = "onSave"
 rootPath = "/Users/study/research-project/paper"
 typstExtraArgs = ["entrypoint.typ"]
 outputPath = "$root/build/paper-debug.pdf" 
+
+[language-server.harper-ls.config.harper-ls.linters]
+SpelledNumbers = true
+BoringWords = false

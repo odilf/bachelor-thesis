@@ -14,10 +14,26 @@ paper-debug:
         build/paper-debug.pdf \
         --open
 
-# builds presentation in debug mode, watches and opens
-presentation-release:
-    @echo TODO
+presentation:
+    mkdir -p build && typst watch presentation/main.typ \
+        --root ./ \
+        build/presentation.pdf \
+        && pympress build/presentation.pdf
 
-# builds presentation in debug mode, watches and opens
-presentation-debug:
-    @echo TODO
+poster:
+    mkdir -p build && typst compile poster/main.typ \
+        --root ./ \
+        build/poster.pdf
+        
+poster-svg:
+    mkdir -p build && typst compile poster/main.typ \
+        --root ./ \
+        --format svg \
+        build/poster.svg
+
+
+poster-png:
+    mkdir -p build && typst compile poster/main.typ \
+        --root ./ \
+        --format png \
+        build/poster.png 
