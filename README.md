@@ -7,7 +7,7 @@ To view them:
 - [Poster](https://github.com/odilf/bachelor-thesis/releases/download/2025-06-25/poster.pdf)
 - [Presentation slides](https://github.com/odilf/bachelor-thesis/releases/download/2025-06-25/presentation.pdf)
 
-You can also access them on the latest release.
+You can also access them on the [latest release](https://github.com/odilf/bachelor-thesis/releases).
 
 ## Source code for experiments
 
